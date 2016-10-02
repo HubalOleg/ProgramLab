@@ -9,8 +9,8 @@ import android.provider.BaseColumns;
  * Created by User on 02.10.2016.
  */
 
-public class ProgramContract {
-    public static final String CONTENT_AUTHORITY =  "com.hubal.oleg.programlab.app";
+public class TvProgramContract {
+    public static final String CONTENT_AUTHORITY =  "oleg.hubal.com.programlab";
     public static final Uri BASE_CONTENT_URI =      Uri.parse("content://" + CONTENT_AUTHORITY);
 
     public static final String PATH_PROGRAM = "program";
