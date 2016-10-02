@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_program_fragment"
+            android:icon="@drawable/ic_one"
+            android:title="Телепрограмма" />
+        <item
+            android:id="@+id/nav_channel_list_fragment"
+            android:icon="@drawable/ic_two"
+            android:title="Список каналов" />
+        <item
+            android:id="@+id/nav_category_fragment"
+            android:icon="@drawable/ic_three"
+            android:title="Категории" />
+        <item
+            android:id="@+id/nav_favorite_fragment"
+            android:icon="@drawable/ic_three"
+            android:title="Любимые каналы" />
+
+    </group>
+</menu>
