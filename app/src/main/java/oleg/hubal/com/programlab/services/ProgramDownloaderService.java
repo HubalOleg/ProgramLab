@@ -5,18 +5,19 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.SyncHttpClient;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.Iterator;
 import java.util.Vector;
 
+import cz.msebera.android.httpclient.Header;
+import oleg.hubal.com.programlab.Constants;
 import oleg.hubal.com.programlab.data.TvProgramContract;
 
 /**
@@ -24,6 +25,8 @@ import oleg.hubal.com.programlab.data.TvProgramContract;
  */
 
 public class ProgramDownloaderService extends IntentService {
+
+    private final AsyncHttpClient client = new SyncHttpClient();
 
     public ProgramDownloaderService() {
         super("ProgramDownloaderService");
@@ -36,90 +39,50 @@ public class ProgramDownloaderService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-//        Log.d("Log123", "start service");
-//        ResultReceiver rec = intent.getParcelableExtra("receiver");
-//
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-
-        String programJsonStr = null;
-
-        try {
-            URL url = new URL("https://t2dev.firebaseio.com/PROGRAM.json");
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if (inputStream == null) {
-                return;
-            }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
-            }
-
-            if (buffer.length() == 0) {
-                return;
-            }
-            programJsonStr = buffer.toString();
-            getProgramDataFromJson(programJsonStr);
-//            rec.send(Activity.RESULT_OK, null);
-        } catch (IOException e) {
-            Log.e("log123", "Error", e);
-        } catch (JSONException e) {
-            Log.e("log123", e.getMessage(), e);
-            e.printStackTrace();
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-            if (reader != null) {
+        client.get(Constants.URL_PROGRAM, new RequestParams(), new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
-                    reader.close();
-                } catch (final IOException e) {
-                    Log.e("log123", "Error closing stream", e);
+                    getProgramDataFromJson(response);
+                } catch (JSONException e) {
+                    Log.e("log123", e.getMessage(), e);
+                    e.printStackTrace();
                 }
             }
-        }
-        return;
+        });
     }
 
-    private void getProgramDataFromJson(String programJsonStr)
+
+    private void getProgramDataFromJson(JSONObject allProgramJsonObject)
             throws JSONException {
-        JSONObject programJson = new JSONObject(programJsonStr);
-        Iterator<String> keys = programJson.keys();
+        Vector<ContentValues> programVector = new Vector<>();
 
-        Vector<ContentValues> cVVector = new Vector<>();
+        Iterator<String> allKeys = allProgramJsonObject.keys();
 
-        while (keys.hasNext()) {
-            String key = keys.next();
-            JSONObject programByDayJson = programJson.getJSONObject(key);
-            Iterator<String> keysByDay = programByDayJson.keys();
+        while (allKeys.hasNext()) {
+            String dailyKey = allKeys.next();
+            JSONObject dailyProgramJsonObject = allProgramJsonObject.getJSONObject(dailyKey);
+            Iterator<String> programKeys = dailyProgramJsonObject.keys();
 
-            while (keysByDay.hasNext()) {
-                String oneKey = keysByDay.next();
-                JSONObject oneProgramJson = programByDayJson.getJSONObject(oneKey);
+            while (programKeys.hasNext()) {
+                String programKey = programKeys.next();
+                JSONObject programJsonObject = dailyProgramJsonObject.getJSONObject(programKey);
 
-                Long date = oneProgramJson.getLong("date");
-                String showID = oneProgramJson.getString("showID");
-                String tvShowName = oneProgramJson.getString("tvShowName");
+                Long date = programJsonObject.getLong(Constants.JSON_PROGRAM_DATE);
+                String showID = programJsonObject.getString(Constants.JSON_PROGRAM_SHOW_ID);
+                String tvShowName = programJsonObject.getString(Constants.JSON_PROGRAM_SHOW_NAME);
 
                 ContentValues programValues = new ContentValues();
                 programValues.put(TvProgramContract.ProgramEntry.COLUMN_DATE, date);
                 programValues.put(TvProgramContract.ProgramEntry.COLUMN_SHOW_ID, showID);
                 programValues.put(TvProgramContract.ProgramEntry.COLUMN_SHOW_NAME, tvShowName);
-                cVVector.add(programValues);
+                programVector.add(programValues);
             }
         }
-        if ( cVVector.size() > 0 ) {
-            ContentValues[] cvArray = new ContentValues[cVVector.size()];
-            cVVector.toArray(cvArray);
+        if ( programVector.size() > 0 ) {
+            ContentValues[] cvArray = new ContentValues[programVector.size()];
+            programVector.toArray(cvArray);
             getContentResolver().bulkInsert(TvProgramContract.ProgramEntry.CONTENT_URI, cvArray);
         }
-        Log.d("log123", "getProgramDataFromJson");
     }
 }

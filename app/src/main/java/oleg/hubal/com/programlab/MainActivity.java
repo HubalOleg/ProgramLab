@@ -13,15 +13,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import oleg.hubal.com.programlab.services.ProgramDownloaderService;
-import oleg.hubal.com.programlab.services.receivers.ProgramDownloaderReceiver;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
     private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
-
-    private ProgramDownloaderReceiver programReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,26 +29,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         setNavigationView();
-//        setupProgramDownloaderReceiver();
         launchProgramDownloaderService();
-    }
-
-//    private void setupProgramDownloaderReceiver() {
-//        programReceiver = new ProgramDownloaderReceiver(new Handler());
-//        programReceiver.setReceiver(new ProgramDownloaderReceiver.Receiver() {
-//            @Override
-//            public void onReceiverResult(int resultCode, Bundle resultData) {
-//                if (resultCode == RESULT_OK) {
-//                    Log.d("log123", "Callback");
-//                }
-//            }
-//        });
-//    }
-
-    private void launchProgramDownloaderService() {
-        Intent i = new Intent(this, ProgramDownloaderService.class);
-//        i.putExtra("receiver", programReceiver);
-        startService(i);
     }
 
     @Override
@@ -72,6 +50,11 @@ public class MainActivity extends AppCompatActivity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    private void launchProgramDownloaderService() {
+        Intent i = new Intent(this, ProgramDownloaderService.class);
+        startService(i);
     }
 
     private ActionBarDrawerToggle setupDrawerToggle() {
