@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="oleg.hubal.com.programlab">
+    package="oleg.hubal.com.programlab" >
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -15,6 +16,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".services.ProgramDownloaderService"
+            android:exported="false"/>
+        <provider
+            android:authorities="oleg.hubal.com.programlab"
+            android:name=".data.TvProgramProvider"
+            android:exported="false"
+            android:protectionLevel="signature"
+            android:syncable="true"/>
     </application>
 
 </manifest>
