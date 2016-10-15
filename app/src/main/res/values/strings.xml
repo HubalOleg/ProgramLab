@@ -3,4 +3,10 @@
     <string name="header">Profile</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    <string name="error_internet">Internet not connected</string>
+    <string name="notif_title">Download</string>
+    <string name="notif_downloading">Download in progress</string>
+    <string name="notif_saving">Saving data</string>
+    <string name="notif_download_finished">Download finished!</string>
+    <string name="notif_synchronized">Data synchronized!</string>
 </resources>

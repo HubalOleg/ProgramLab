@@ -11,13 +11,17 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import oleg.hubal.com.programlab.services.ProgramDownloaderService;
+import oleg.hubal.com.programlab.fragment.CategoryFragment;
+import oleg.hubal.com.programlab.fragment.ChannelFragment;
+import oleg.hubal.com.programlab.fragment.FavoriteFragment;
+import oleg.hubal.com.programlab.fragment.ProgramFragment;
+import oleg.hubal.com.programlab.service.DownloadService;
 
 public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
-    private NavigationView nvDrawer;
     private ActionBarDrawerToggle drawerToggle;
 
     @Override
@@ -28,8 +32,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        setNavigationView();
-        launchProgramDownloaderService();
+        setNavigationDrawer();
+        if (savedInstanceState == null) {
+            launchDownloadService();
+        }
     }
 
     @Override
@@ -52,23 +58,19 @@ public class MainActivity extends AppCompatActivity {
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    private void launchProgramDownloaderService() {
-        Intent i = new Intent(this, ProgramDownloaderService.class);
-        startService(i);
-    }
-
     private ActionBarDrawerToggle setupDrawerToggle() {
         return new ActionBarDrawerToggle(this, mDrawer, toolbar,
                 R.string.drawer_open, R.string.drawer_close);
     }
 
-    private void setNavigationView() {
+
+    private void setNavigationDrawer() {
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = setupDrawerToggle();
 
         mDrawer.addDrawerListener(drawerToggle);
 
-        nvDrawer = (NavigationView) findViewById(R.id.nvDrawer);
+        NavigationView nvDrawer = (NavigationView) findViewById(R.id.nvDrawer);
         setupDrawerContent(nvDrawer);
     }
 
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = ProgramFragment.class;
                 break;
             case R.id.nav_channel_list_fragment:
-                fragmentClass = ChannelListFragment.class;
+                fragmentClass = ChannelFragment.class;
                 break;
             case R.id.nav_category_fragment:
                 fragmentClass = CategoryFragment.class;
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                 fragmentClass = FavoriteFragment.class;
                 break;
             default:
-                fragmentClass = ChannelListFragment.class;
+                fragmentClass = ProgramFragment.class;
         }
 
         try {
@@ -116,5 +118,17 @@ public class MainActivity extends AppCompatActivity {
         menuItem.setChecked(true);
         setTitle(menuItem.getTitle());
         mDrawer.closeDrawers();
+    }
+
+    private void launchDownloadService() {
+        if (!Utility.getFirstDownloadPref(this)) {
+            if (Utility.isNetworkConnected(this)) {
+                Intent i = new Intent(this, DownloadService.class);
+                i.putExtra(Constants.SERVICE_STATUS, Constants.SERVICE_FIRST_DOWNLOAD);
+                startService(i);
+            } else {
+                Toast.makeText(this, R.string.error_internet, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

@@ -15,7 +15,7 @@
             android:title="Категории" />
         <item
             android:id="@+id/nav_favorite_fragment"
-            android:icon="@drawable/ic_three"
+            android:icon="@android:drawable/btn_star"
             android:title="Любимые каналы" />
 
     </group>
