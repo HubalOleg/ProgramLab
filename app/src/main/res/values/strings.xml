@@ -9,4 +9,9 @@
     <string name="notif_saving">Saving data</string>
     <string name="notif_download_finished">Download finished!</string>
     <string name="notif_synchronized">Data synchronized!</string>
+    <string name="calendar">Calendar</string>
+    <string name="refresh_data">Refresh data</string>
+    <string name="dialog_synchronizing">Synchronizing data</string>
+    <string name="dialog_wait">Wait!</string>
+    <string name="dialog_downloading">Downloading data!</string>
 </resources>

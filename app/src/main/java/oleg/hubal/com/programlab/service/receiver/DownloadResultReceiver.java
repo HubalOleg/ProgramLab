@@ -2,7 +2,7 @@ package oleg.hubal.com.programlab.service.receiver;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.ResultReceiver;
+import android.support.v4.os.ResultReceiver;
 
 /**
  * Created by User on 06.10.2016.
@@ -20,7 +20,7 @@ public class DownloadResultReceiver extends ResultReceiver {
     }
 
     public interface Receiver {
-        public void onReceiveResult(int resultCode, Bundle resultData);
+        void onReceiveResult(int resultCode, Bundle resultData);
     }
 
     @Override

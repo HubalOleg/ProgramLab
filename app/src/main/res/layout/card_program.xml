@@ -2,12 +2,11 @@
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="@dimen/activity_vertical_margin">
+    android:layout_marginTop="@dimen/card_vertical_margin">
     <TextView
-        android:id="@+id/tvCategoryName"
+        android:id="@+id/tvProgram"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="@dimen/card_category_padding"
-        android:textSize="@dimen/category_text_size"/>
+        android:layout_marginLeft="@dimen/card_horizontal_margin"
+        android:layout_marginRight="@dimen/card_horizontal_margin"/>
 </android.support.v7.widget.CardView>

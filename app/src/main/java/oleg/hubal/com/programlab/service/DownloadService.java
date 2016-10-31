@@ -5,7 +5,9 @@ import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.os.ResultReceiver;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpClient;
@@ -56,30 +58,52 @@ public class DownloadService extends IntentService {
         mBuilder.setContentTitle(getString(R.string.notif_title))
                 .setContentText(getString(R.string.notif_downloading))
                 .setSmallIcon(android.R.drawable.stat_sys_download);
-        setNotificationProgress(mTotalValue, 0);
+        updateNotify(mTotalValue, 0);
 
         switch(intent.getIntExtra(Constants.SERVICE_STATUS, -1)) {
             case Constants.SERVICE_FIRST_DOWNLOAD:
-                loadChannel();;
-                loadCategory();
-                loadProgram();
-                Utility.setFirstDownloadPref(this);
+                loadData(intent);
                 mBuilder.setContentText(getString(R.string.notif_download_finished));
                 break;
             case Constants.SERVICE_SYNCHRONIZE_DATA:
-                deleteProgram();
-                loadProgram();
+                synchronizeData();
                 mBuilder.setContentText(getString(R.string.notif_synchronized));
                 break;
-        };
+            case Constants.SERVICE_SYNCHRONIZE_DATA_WITH_RESULT:
+                synchronizeDataWithResult(intent);
+                mBuilder.setContentText(getString(R.string.notif_synchronized));
+                break;
+        }
 
         mBuilder.setSmallIcon(android.R.drawable.stat_sys_download_done);
         mNotifyManager.notify(mNotificationId, mBuilder.build());
 
     }
 
+    private void loadData(Intent intent) {
+        ResultReceiver receiver = intent.getParcelableExtra(Constants.RECEIVER);
+        receiver.send(Constants.RECEIVER_SERVICE_START, Bundle.EMPTY);
+        loadChannel();
+        loadCategory();
+        loadProgram();
+        Utility.setDownloadPref(this);
+        receiver.send(Constants.RECEIVER_SERVICE_FINISH, Bundle.EMPTY);
+    }
+
+    private void synchronizeData() {
+        deleteProgram();
+        loadProgram();
+    }
+
+    private void synchronizeDataWithResult(Intent intent) {
+        ResultReceiver receiver = intent.getParcelableExtra(Constants.RECEIVER);
+        receiver.send(Constants.RECEIVER_SERVICE_START, Bundle.EMPTY);
+        synchronizeData();
+        receiver.send(Constants.RECEIVER_SERVICE_FINISH, Bundle.EMPTY);
+    }
+
     private void loadChannel() {
-        client.get(Constants.URL_CHANNEL, new RequestParams(), new JsonHttpResponseHandler() {
+        client.get(Constants.URL_CHANNELS, new RequestParams(), new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
@@ -126,20 +150,21 @@ public class DownloadService extends IntentService {
             String channelKey = channelsKeys.next();
             JSONObject channelJSONObject = allChannelsJSONObject.getJSONObject(channelKey);
 
-            String name = channelJSONObject.getString(Constants.JSON_CHANNEL_NAME);
-            String tvURL = channelJSONObject.getString(Constants.JSON_CHANNEL_TV_URL);
+            String name = channelJSONObject.getString(Constants.JSON_CHANNELS_NAME);
+            String tvURL = channelJSONObject.getString(Constants.JSON_CHANNELS_TV_URL);
             String category = getCategory(channelJSONObject);
 
             ContentValues channelValues = new ContentValues();
-            channelValues.put(TvProgramContract.ChannelEntry.COLUMN_NAME, name);
-            channelValues.put(TvProgramContract.ChannelEntry.COLUMN_TV_URL, tvURL);
-            channelValues.put(TvProgramContract.ChannelEntry.COLUMN_CATEGORY, category);
+            channelValues.put(TvProgramContract.ChannelsEntry.COLUMN_NAME, name);
+            channelValues.put(TvProgramContract.ChannelsEntry.COLUMN_TV_URL, tvURL);
+            channelValues.put(TvProgramContract.ChannelsEntry.COLUMN_CATEGORY, category);
+            channelValues.put(TvProgramContract.ChannelsEntry.COLUMN_FAVORITE, 0);
             channelVector.add(channelValues);
         }
         if ( channelVector.size() > 0 ) {
             ContentValues[] cvArray = new ContentValues[channelVector.size()];
             channelVector.toArray(cvArray);
-            getContentResolver().bulkInsert(TvProgramContract.ChannelEntry.CONTENT_URI, cvArray);
+            getContentResolver().bulkInsert(TvProgramContract.ChannelsEntry.CONTENT_URI, cvArray);
         }
     }
 
@@ -167,7 +192,7 @@ public class DownloadService extends IntentService {
             public void onProgress(long bytesWritten, long totalSize) {
                 int percent = Utility.calculatePercent(bytesWritten, totalSize);
                 if (percent - previousPercent > Constants.NOTIFICATION_PROGRESS_LIMIT) {
-                    setNotificationProgress(mTotalValue, percent);
+                    updateNotify(mTotalValue, percent);
                     previousPercent = percent;
                 }
             }
@@ -177,7 +202,7 @@ public class DownloadService extends IntentService {
     private void getProgramDataFromJSON(JSONObject allProgramJSONObject)
             throws JSONException {
         mBuilder.setContentText(getString(R.string.notif_saving));
-        setNotificationProgress(0, 0);
+        updateNotify(0, 0);
 
         Vector<ContentValues> programVector = new Vector<>();
 
@@ -211,10 +236,10 @@ public class DownloadService extends IntentService {
     }
 
     private void deleteProgram() {
-        getContentResolver().delete(TvProgramContract.CategoryEntry.CONTENT_URI, null, null);
+        getContentResolver().delete(TvProgramContract.ProgramEntry.CONTENT_URI, null, null);
     }
 
-    private void setNotificationProgress(int max, int progress) {
+    private void updateNotify(int max, int progress) {
         mBuilder.setProgress(max, progress, false);
         mNotifyManager.notify(mNotificationId, mBuilder.build());
     }

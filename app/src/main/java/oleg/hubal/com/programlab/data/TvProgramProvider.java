@@ -8,7 +8,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 /**
  * Created by User on 02.10.2016.
@@ -17,12 +16,10 @@ import android.util.Log;
 public class TvProgramProvider extends ContentProvider {
     private static final int PROGRAM =      100;
     private static final int PROGRAM_ID =   101;
-    private static final int CHANNEL =      102;
-    private static final int CHANNEL_ID =   103;
+    private static final int CHANNELS =      102;
+    private static final int CHANNELS_ID =   103;
     private static final int CATEGORY =     104;
     private static final int CATEGORY_ID =  105;
-    private static final int FAVORITE =     106;
-    private static final int FAVORITE_ID =  107;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
     private TvProgramDBHelper mOpenHelper;
@@ -39,12 +36,10 @@ public class TvProgramProvider extends ContentProvider {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         matcher.addURI(content, TvProgramContract.PATH_PROGRAM, PROGRAM);
         matcher.addURI(content, TvProgramContract.PATH_PROGRAM + "/#", PROGRAM_ID);
-        matcher.addURI(content, TvProgramContract.PATH_CHANNEL, CHANNEL);
-        matcher.addURI(content, TvProgramContract.PATH_CHANNEL + "/#", CHANNEL_ID);
+        matcher.addURI(content, TvProgramContract.PATH_CHANNELS, CHANNELS);
+        matcher.addURI(content, TvProgramContract.PATH_CHANNELS + "/#", CHANNELS_ID);
         matcher.addURI(content, TvProgramContract.PATH_CATEGORY, CATEGORY);
         matcher.addURI(content, TvProgramContract.PATH_CATEGORY + "/#", CATEGORY_ID);
-        matcher.addURI(content, TvProgramContract.PATH_FAVORITE, FAVORITE);
-        matcher.addURI(content, TvProgramContract.PATH_FAVORITE + "/#", FAVORITE_ID);
 
         return matcher;
     }
@@ -57,18 +52,14 @@ public class TvProgramProvider extends ContentProvider {
                 return TvProgramContract.ProgramEntry.CONTENT_TYPE;
             case PROGRAM_ID:
                 return TvProgramContract.ProgramEntry.CONTENT_ITEM;
-            case CHANNEL:
-                return TvProgramContract.ChannelEntry.CONTENT_TYPE;
-            case CHANNEL_ID:
-                return TvProgramContract.ChannelEntry.CONTENT_ITEM;
+            case CHANNELS:
+                return TvProgramContract.ChannelsEntry.CONTENT_TYPE;
+            case CHANNELS_ID:
+                return TvProgramContract.ChannelsEntry.CONTENT_ITEM;
             case CATEGORY:
                 return TvProgramContract.CategoryEntry.CONTENT_TYPE;
             case CATEGORY_ID:
                 return TvProgramContract.CategoryEntry.CONTENT_ITEM;
-            case FAVORITE:
-                return TvProgramContract.FavoriteEntry.CONTENT_TYPE;
-            case FAVORITE_ID:
-                return TvProgramContract.FavoriteEntry.CONTENT_ITEM;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -105,9 +96,9 @@ public class TvProgramProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case CHANNEL:
+            case CHANNELS:
                 retCursor = db.query(
-                        TvProgramContract.ChannelEntry.TABLE_NAME,
+                        TvProgramContract.ChannelsEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -116,12 +107,12 @@ public class TvProgramProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case CHANNEL_ID:
+            case CHANNELS_ID:
                 _id = ContentUris.parseId(uri);
                 retCursor = db.query(
-                        TvProgramContract.ChannelEntry.TABLE_NAME,
+                        TvProgramContract.ChannelsEntry.TABLE_NAME,
                         projection,
-                        TvProgramContract.ChannelEntry._ID + " = ?",
+                        TvProgramContract.ChannelsEntry._ID + " = ?",
                         new String[] {String.valueOf(_id)},
                         null,
                         null,
@@ -151,29 +142,6 @@ public class TvProgramProvider extends ContentProvider {
                         sortOrder
                 );
                 break;
-            case FAVORITE:
-                retCursor = db.query(
-                        TvProgramContract.FavoriteEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            case FAVORITE_ID:
-                _id = ContentUris.parseId(uri);
-                retCursor = db.query(
-                        TvProgramContract.FavoriteEntry.TABLE_NAME,
-                        projection,
-                        TvProgramContract.FavoriteEntry._ID + " = ?",
-                        new String[] {String.valueOf(_id)},
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -197,10 +165,10 @@ public class TvProgramProvider extends ContentProvider {
                     throw new UnsupportedOperationException("Unable to insert rows into: " + uri);
                 }
                 break;
-            case CHANNEL:
-                _id = db.insert(TvProgramContract.ChannelEntry.TABLE_NAME, null, values);
+            case CHANNELS:
+                _id = db.insert(TvProgramContract.ChannelsEntry.TABLE_NAME, null, values);
                 if(_id > 0) {
-                    returnUri = TvProgramContract.ChannelEntry.buildChannelUri(_id);
+                    returnUri = TvProgramContract.ChannelsEntry.buildChannelsUri(_id);
                 } else {
                     throw new UnsupportedOperationException("Unable to insert rows into: " + uri);
                 }
@@ -209,14 +177,6 @@ public class TvProgramProvider extends ContentProvider {
                 _id = db.insert(TvProgramContract.CategoryEntry.TABLE_NAME, null, values);
                 if(_id > 0) {
                     returnUri = TvProgramContract.CategoryEntry.buildCategoryUri(_id);
-                } else {
-                    throw new UnsupportedOperationException("Unable to insert rows into: " + uri);
-                }
-                break;
-            case FAVORITE:
-                _id = db.insert(TvProgramContract.FavoriteEntry.TABLE_NAME, null, values);
-                if(_id > 0) {
-                    returnUri = TvProgramContract.FavoriteEntry.buildFavoriteUri(_id);
                 } else {
                     throw new UnsupportedOperationException("Unable to insert rows into: " + uri);
                 }
@@ -239,16 +199,12 @@ public class TvProgramProvider extends ContentProvider {
                 rows = db.delete(TvProgramContract.ProgramEntry.TABLE_NAME,
                         selection, selectionArgs);
                 break;
-            case CHANNEL:
-                rows = db.delete(TvProgramContract.ChannelEntry.TABLE_NAME,
+            case CHANNELS:
+                rows = db.delete(TvProgramContract.ChannelsEntry.TABLE_NAME,
                         selection, selectionArgs);
                 break;
             case CATEGORY:
                 rows = db.delete(TvProgramContract.CategoryEntry.TABLE_NAME,
-                        selection, selectionArgs);
-                break;
-            case FAVORITE:
-                rows = db.delete(TvProgramContract.FavoriteEntry.TABLE_NAME,
                         selection, selectionArgs);
                 break;
             default:
@@ -267,21 +223,19 @@ public class TvProgramProvider extends ContentProvider {
         final SQLiteDatabase db = mOpenHelper.getWritableDatabase();
         int rows;
 
-        Log.d("log123", String.valueOf(sUriMatcher.match(uri)));
         switch(sUriMatcher.match(uri)) {
             case PROGRAM:
                 rows = db.update(TvProgramContract.ProgramEntry.TABLE_NAME,
                         values, selection, selectionArgs);
                 break;
-            case CHANNEL:
-                rows = db.update(TvProgramContract.ChannelEntry.TABLE_NAME,
-                        values, selection, selectionArgs);
             case CATEGORY:
                 rows = db.update(TvProgramContract.CategoryEntry.TABLE_NAME,
                         values, selection, selectionArgs);
-            case FAVORITE:
-                rows = db.update(TvProgramContract.FavoriteEntry.TABLE_NAME,
+                break;
+            case CHANNELS:
+                rows = db.update(TvProgramContract.ChannelsEntry.TABLE_NAME,
                         values, selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -316,12 +270,12 @@ public class TvProgramProvider extends ContentProvider {
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
-            case CHANNEL:
+            case CHANNELS:
                 db.beginTransaction();
                 returnCount = 0;
                 try {
                     for (ContentValues value : values) {
-                        long _id = db.insert(TvProgramContract.ChannelEntry.TABLE_NAME,
+                        long _id = db.insert(TvProgramContract.ChannelsEntry.TABLE_NAME,
                                 null, value);
                         if (_id != -1) {
                             returnCount++;
@@ -339,23 +293,6 @@ public class TvProgramProvider extends ContentProvider {
                 try {
                     for (ContentValues value : values) {
                         long _id = db.insert(TvProgramContract.CategoryEntry.TABLE_NAME,
-                                null, value);
-                        if (_id != -1) {
-                            returnCount++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
-                getContext().getContentResolver().notifyChange(uri, null);
-                return returnCount;
-            case FAVORITE:
-                db.beginTransaction();
-                returnCount = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long _id = db.insert(TvProgramContract.FavoriteEntry.TABLE_NAME,
                                 null, value);
                         if (_id != -1) {
                             returnCount++;

@@ -10,17 +10,19 @@ import android.widget.TextView;
 import oleg.hubal.com.programlab.Constants;
 import oleg.hubal.com.programlab.R;
 
+import static android.view.View.*;
+
 /**
  * Created by User on 15.10.2016.
  */
 
-public class CategoryAdapter extends
-        CursorRecyclerAdapter<CategoryAdapter.CategoryViewHolder> {
+public class CategoryAdapter extends CursorRecyclerAdapter<CategoryAdapter.CategoryViewHolder> {
 
-    private String name;
+    private OnClickListener mOnClickListener;
 
-    public CategoryAdapter(Cursor cursor) {
+    public CategoryAdapter(Cursor cursor, OnClickListener onClickListener) {
         super(cursor);
+        mOnClickListener = onClickListener;
     }
 
     @Override
@@ -31,9 +33,11 @@ public class CategoryAdapter extends
     }
 
     @Override
-    public void onBindViewHolder(CategoryAdapter.CategoryViewHolder holder, Cursor cursor) {
-        getCursorData(cursor);
+    public void onBindViewHolder(CategoryViewHolder holder, Cursor cursor) {
+        String name = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CATEGORY_NAME));
 
+        holder.itemView.setTag(name);
+        holder.itemView.setOnClickListener(mOnClickListener);
         holder.tvName.setText(name);
     }
 
@@ -42,13 +46,9 @@ public class CategoryAdapter extends
         return super.swapCursor(newCursor);
     }
 
-    private void getCursorData(Cursor cursor) {
-        name = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CATEGORY_NAME));
-    }
-
     class CategoryViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvName, tvTvURL, tvCategory;
+        TextView tvName;
 
         CategoryViewHolder(View itemView) {
             super(itemView);

@@ -4,9 +4,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import oleg.hubal.com.programlab.data.TvProgramContract.FavoriteEntry;
 import oleg.hubal.com.programlab.data.TvProgramContract.ProgramEntry;
-import oleg.hubal.com.programlab.data.TvProgramContract.ChannelEntry;
+import oleg.hubal.com.programlab.data.TvProgramContract.ChannelsEntry;
 import oleg.hubal.com.programlab.data.TvProgramContract.CategoryEntry;
 
 
@@ -31,11 +30,12 @@ public class TvProgramDBHelper extends SQLiteOpenHelper {
                 ProgramEntry.COLUMN_SHOW_NAME + " TEXT NOT NULL " +
                 " );";
 
-        final String SQL_CREATE_CHANNEL_TABLE = "CREATE TABLE " + ChannelEntry.TABLE_NAME + " (" +
-                ChannelEntry._ID + " INTEGER PRIMARY KEY, " +
-                ChannelEntry.COLUMN_NAME + " TEXT NOT NULL, " +
-                ChannelEntry.COLUMN_TV_URL + " TEXT NOT NULL, " +
-                ChannelEntry.COLUMN_CATEGORY + " TEXT NOT NULL " +
+        final String SQL_CREATE_CHANNELS_TABLE = "CREATE TABLE " + ChannelsEntry.TABLE_NAME + " (" +
+                ChannelsEntry._ID + " INTEGER PRIMARY KEY, " +
+                ChannelsEntry.COLUMN_NAME + " TEXT NOT NULL, " +
+                ChannelsEntry.COLUMN_TV_URL + " TEXT NOT NULL, " +
+                ChannelsEntry.COLUMN_CATEGORY + " TEXT NOT NULL, " +
+                ChannelsEntry.COLUMN_FAVORITE + " INTEGER NULL " +
                 " );";
 
         final String SQL_CREATE_CATEGORY_TABLE = "CREATE TABLE " + CategoryEntry.TABLE_NAME + " (" +
@@ -43,23 +43,16 @@ public class TvProgramDBHelper extends SQLiteOpenHelper {
                 CategoryEntry.COLUMN_NAME + " TEXT NOT NULL " +
                 " );";
 
-        final String SQL_CREATE_FAVORITE_TABLE = "CREATE TABLE " + FavoriteEntry.TABLE_NAME + " (" +
-                FavoriteEntry._ID + " INTEGER PRIMARY KEY, " +
-                FavoriteEntry.COLUMN_NAME + " TEXT NOT NULL " +
-                " );";
-
         sqLiteDatabase.execSQL(SQL_CREATE_PROGRAM_TABLE);
-        sqLiteDatabase.execSQL(SQL_CREATE_CHANNEL_TABLE);
+        sqLiteDatabase.execSQL(SQL_CREATE_CHANNELS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_CATEGORY_TABLE);
-        sqLiteDatabase.execSQL(SQL_CREATE_FAVORITE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
         sqLiteDatabase.execSQL("DROP TABLE IF EXIST " + ProgramEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXIST " + ChannelEntry.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXIST " + ChannelsEntry.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXIST " + CategoryEntry.TABLE_NAME);
-        sqLiteDatabase.execSQL("DROP TABLE IF EXIST " + FavoriteEntry.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }

@@ -6,28 +6,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import oleg.hubal.com.programlab.Constants;
-import oleg.hubal.com.programlab.OnChangeFavoriteState;
 import oleg.hubal.com.programlab.R;
+
+import static android.widget.CompoundButton.OnCheckedChangeListener;
 
 /**
  * Created by User on 15.10.2016.
  */
 
-public class ChannelAdapter extends CursorRecyclerAdapter<ChannelAdapter.ChannelViewHolder>
-        implements CompoundButton.OnCheckedChangeListener {
+public class ChannelsAdapter extends CursorRecyclerAdapter<ChannelsAdapter.ChannelViewHolder> {
 
-    private String name, tvURL, category;
+    private OnCheckedChangeListener mOnCheckedChangeListener;
 
-    private OnChangeFavoriteState mOnChangeFavoriteState;
-
-    public ChannelAdapter(Cursor cursor, OnChangeFavoriteState onChangeFavoriteState) {
+    public ChannelsAdapter(Cursor cursor, OnCheckedChangeListener onCheckedChangeListener) {
         super(cursor);
-        mOnChangeFavoriteState = onChangeFavoriteState;
+        mOnCheckedChangeListener = onCheckedChangeListener;
     }
+
 
     @Override
     public ChannelViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -38,11 +36,19 @@ public class ChannelAdapter extends CursorRecyclerAdapter<ChannelAdapter.Channel
 
     @Override
     public void onBindViewHolder(ChannelViewHolder holder, Cursor cursor) {
-        getCursorData(cursor);
+        String name = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNELS_NAME));
+        String tvURL = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNELS_TV_URL));
+        String category = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNELS_CATEGORY));
+        boolean favorite = cursor.getInt(cursor.getColumnIndex(Constants.CURSOR_CHANNELS_FAVORITE)) == 1;
 
         holder.tvName.setText(name);
         holder.tvTvURL.setText(tvURL);
         holder.tvCategory.setText(category);
+
+        holder.cbFavorite.setTag(name);
+        holder.cbFavorite.setOnCheckedChangeListener(null);
+        holder.cbFavorite.setChecked(favorite);
+        holder.cbFavorite.setOnCheckedChangeListener(mOnCheckedChangeListener);
     }
 
     @Override
@@ -50,30 +56,17 @@ public class ChannelAdapter extends CursorRecyclerAdapter<ChannelAdapter.Channel
         return super.swapCursor(newCursor);
     }
 
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        mOnChangeFavoriteState.changeFavoriteState(name, isChecked);
-    }
-
-    private void getCursorData(Cursor cursor) {
-        name = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNEL_NAME));
-        tvURL = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNEL_TV_URL));
-        category = cursor.getString(cursor.getColumnIndex(Constants.CURSOR_CHANNEL_CATEGORY));
-    }
-
     class ChannelViewHolder extends RecyclerView.ViewHolder {
 
         TextView tvName, tvTvURL, tvCategory;
-        CheckBox chkFavorite;
+        CheckBox cbFavorite;
 
         ChannelViewHolder(View itemView) {
             super(itemView);
             tvName = (TextView) itemView.findViewById(R.id.tvChannelName);
             tvTvURL = (TextView) itemView.findViewById(R.id.tvChannelURL);
             tvCategory = (TextView) itemView.findViewById(R.id.tvChannelCategory);
-            chkFavorite = (CheckBox) itemView.findViewById(R.id.chkChannelFavorite);
-
-            chkFavorite.setOnCheckedChangeListener(ChannelAdapter.this);
+            cbFavorite = (CheckBox) itemView.findViewById(R.id.cbChannelFavorite);
         }
     }
 }

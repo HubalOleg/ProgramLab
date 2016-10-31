@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -13,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import oleg.hubal.com.programlab.Constants;
 import oleg.hubal.com.programlab.R;
 import oleg.hubal.com.programlab.adapter.CategoryAdapter;
 import oleg.hubal.com.programlab.data.TvProgramContract;
@@ -21,7 +23,8 @@ import oleg.hubal.com.programlab.data.TvProgramContract;
  * Created by User on 28.09.2016.
  */
 
-public class CategoryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CategoryFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        View.OnClickListener {
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private CategoryAdapter mCategoryAdapter;
@@ -34,7 +37,7 @@ public class CategoryFragment extends Fragment implements LoaderManager.LoaderCa
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_list, container, false);
+        View v = inflater.inflate(R.layout.fragment_recycler_view, container, false);
 
         mRecyclerView = (RecyclerView) v.findViewById(R.id.recycler_view);
         mRecyclerView.setHasFixedSize(true);
@@ -42,7 +45,7 @@ public class CategoryFragment extends Fragment implements LoaderManager.LoaderCa
         mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mCategoryAdapter = new CategoryAdapter(null);
+        mCategoryAdapter = new CategoryAdapter(null, this);
         mRecyclerView.setAdapter(mCategoryAdapter);
 
         getLoaderManager().initLoader(0, null, this);
@@ -68,5 +71,18 @@ public class CategoryFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mCategoryAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onClick(View v) {
+        String category = (String) v.getTag();
+
+        ChannelsFragment fragment = new ChannelsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(Constants.BUNDLE_CHANNELS_FILTER, category);
+        fragment.setArguments(bundle);
+
+        FragmentManager fragmentManager = getFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
     }
 }

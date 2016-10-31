@@ -39,10 +39,6 @@ public abstract class CursorRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
 
     public abstract void onBindViewHolder(VH holder, Cursor cursor);
 
-    public Cursor getCursor() {
-        return mCursor;
-    }
-
     @Override
     public int getItemCount() {
         if (mDataValid && mCursor != null) {
@@ -65,13 +61,6 @@ public abstract class CursorRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
         }
     }
 
-    public void changeCursor(Cursor cursor) {
-        Cursor old = swapCursor(cursor);
-        if (old != null) {
-            old.close();
-        }
-    }
-
     public Cursor swapCursor(Cursor newCursor) {
         if (newCursor == mCursor) {
             return null;
@@ -88,9 +77,5 @@ public abstract class CursorRecyclerAdapter<VH extends RecyclerView.ViewHolder> 
             notifyItemRangeRemoved(0, getItemCount());
         }
         return oldCursor;
-    }
-
-    public CharSequence convertToString(Cursor cursor) {
-        return cursor == null ? "" : cursor.toString();
     }
 }
